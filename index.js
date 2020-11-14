@@ -26,10 +26,11 @@ const walkFileAndCreateDir = file => {
 }
 
 const createTemplatedHTML = file => {
-    const html = converter.makeHtml(fs.readFileSync(file,  "utf8"))
+    const fileContent = fs.readFileSync(file,  "utf8")
+    const html = converter.makeHtml(fileContent)
     // TODO:  some sort of liquid support for navigation?
     if (templates.page) {
-        return templates.page(html)
+        return templates.page(fileContent.split('\n')[0], html)
     }
     return html;
 }
@@ -70,7 +71,9 @@ createTemplates = cwd => {
     if (fs.existsSync(filePath)) {
         const templateContent = fs.readFileSync(filePath,  "utf8")
         // TODO:  make this smarter w/ regex
-        templates.page = content => templateContent.replace('{{ content }}', content)
+        templates.page = (title, content) =>
+            templateContent.replace('{{ title }}', title)
+            .replace('{{ content }}', content)
     }
 }
 
