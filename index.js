@@ -35,31 +35,49 @@ const createTemplatedHTML = file => {
     return html;
 }
 
+const copyStatic = (cwd, destination) => {
+    if (!fs.existsSync(cwd)){
+        return;
+    }
+    // TODO:  support directories in static directory, lol
+    fs.readdirSync(cwd).forEach(file => {
+        fs.copyFileSync(
+            path.join(cwd, file),
+            path.join(destination, file)
+        )
+    })
+}
+
 const processFile = file => {
     const relativePath = file.split(cwd)[1].slice(1)
     // recursively create dir if it doesn't exist
     // XXX would it be better to do this while walking the files?
-    walkFileAndCreateDir(relativePath)
-    const html = createTemplatedHTML(relativePath)
-    // TODO:  RSS feed
-    fs.writeFileSync(
-        path.join(cwd, 'build', relativePath.replace('.md', '.html')),
-        html,
-    )
+    if (
+        file.endsWith('.md') &&
+        !relativePath.startsWith('.') &&
+        !relativePath.startsWith('build') &&
+        !relativePath.startsWith('static') &&
+        !relativePath.startsWith('templates')
+        ) {
+        walkFileAndCreateDir(relativePath)
+        const html = createTemplatedHTML(relativePath)
+        // TODO:  RSS feed
+        fs.writeFileSync(
+            path.join(cwd, 'build', relativePath.replace('.md', '.html')),
+            html,
+        )
+    }
 }
 
 const walkFiles = (currentDir, fn) => {
     fs.readdirSync(currentDir).forEach(file => {
-        if (file.startsWith('.') || file.startsWith('templates')) {
-            return
-        }
         const currentTest = path.join(currentDir, file)
         if (fs.statSync(currentTest).isDirectory()) {
             walkFiles(currentTest, fn)
         } else {
             fn(currentTest)
         }
-      });
+    })
 }
 
 createTemplates = cwd => {
@@ -76,7 +94,6 @@ createTemplates = cwd => {
             .replace('{{ content }}', content)
     }
     // copy static template files over
-    createDirIfDNE(path.join(cwd, 'tools'))
     createDirIfDNE(path.join(cwd, 'build', '.templates'));
     ['preamble.html'].forEach(template => {
         const filePath = path.join(cwd, 'templates', template)
@@ -89,5 +106,8 @@ createTemplates = cwd => {
 // create build dir if it doesn't exist
 createDirIfDNE(path.join(cwd, 'build'))
 createTemplates(cwd)
+const staticBuildPath = path.join(cwd, 'build', 'static');
+createDirIfDNE(staticBuildPath)
+copyStatic(path.join(cwd, 'static'), staticBuildPath)
 
 walkFiles(cwd, processFile)
