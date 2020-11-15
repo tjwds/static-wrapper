@@ -75,6 +75,15 @@ createTemplates = cwd => {
             templateContent.replace('{{ title }}', title)
             .replace('{{ content }}', content)
     }
+    // copy static template files over
+    createDirIfDNE(path.join(cwd, 'tools'))
+    createDirIfDNE(path.join(cwd, 'build', '.templates'));
+    ['preamble.html'].forEach(template => {
+        const filePath = path.join(cwd, 'templates', template)
+        if (fs.existsSync(filePath)) {
+            fs.copyFileSync(filePath, path.join(cwd, 'build', '.templates', template))
+        }
+    })
 }
 
 // create build dir if it doesn't exist
