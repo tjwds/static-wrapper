@@ -62,10 +62,14 @@ const processFile = file => {
         walkFileAndCreateDir(relativePath)
         const html = createTemplatedHTML(relativePath)
         // TODO:  RSS feed
-        fs.writeFileSync(
-            path.join(cwd, 'build', relativePath.replace('.md', '.html')),
-            html,
+        const destination = path.join(
+            cwd,
+            'build',
+            relativePath.replace('.md', '.html'),
         )
+        fs.writeFileSync( destination, html)
+        const stat = fs.statSync(file);
+        fs.utimesSync(destination, stat.atime, stat.mtime)
     }
 }
 
