@@ -39,7 +39,6 @@ const copyStatic = (cwd, destination) => {
     if (!fs.existsSync(cwd)){
         return;
     }
-    // TODO:  support directories in static directory, lol
     fs.readdirSync(cwd).forEach(file => {
         fs.copyFileSync(
             path.join(cwd, file),
@@ -61,13 +60,12 @@ const processFile = file => {
         ) {
         walkFileAndCreateDir(relativePath)
         const html = createTemplatedHTML(relativePath)
-        // TODO:  RSS feed
         const destination = path.join(
             cwd,
             'build',
             relativePath.replace('.md', '.html'),
         )
-        fs.writeFileSync( destination, html)
+        fs.writeFileSync(destination, html)
         const stat = fs.statSync(file);
         fs.utimesSync(destination, stat.atime, stat.mtime)
     }
