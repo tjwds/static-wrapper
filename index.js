@@ -35,15 +35,23 @@ const createTemplatedHTML = file => {
     return html;
 }
 
-const copyStatic = (cwd, destination) => {
-    if (!fs.existsSync(cwd)){
+const copyStatic = (copyDir, destination) => {
+    if (!fs.existsSync(copyDir)){
         return;
     }
-    fs.readdirSync(cwd).forEach(file => {
-        fs.copyFileSync(
-            path.join(cwd, file),
-            path.join(destination, file)
-        )
+    if (!fs.existsSync(destination)) {
+        createDirIfDNE(destination)
+    }
+    fs.readdirSync(copyDir).forEach(file => {
+        const filePath = path.join(copyDir, file);
+        if (fs.statSync(filePath).isDirectory()) {
+            copyStatic(filePath, path.join(destination, file))
+        } else {
+            fs.copyFileSync(
+                filePath,
+                path.join(destination, file)
+            )
+        }
     })
 }
 
@@ -110,6 +118,6 @@ createDirIfDNE(path.join(cwd, 'build'))
 createTemplates(cwd)
 const staticBuildPath = path.join(cwd, 'build', 'static');
 createDirIfDNE(staticBuildPath)
-copyStatic(path.join(cwd, 'static'), staticBuildPath)
+copyStatic(path.join(cwd, 'static'), staticBuildPath, staticBuildPath)
 
 walkFiles(cwd, processFile)
